@@ -1,8 +1,11 @@
 @page "/todos"
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Forms
+@using TodoBlazor.DTOs
 @using TodoBlazor.Services
-@inject TodoApiClient Api
+@using TodoBlazor.Models
+@inject ITodoService TodoService
+
 <PageTitle>To-Do List</PageTitle>
 
 <div class="container mt-4">
@@ -175,7 +178,7 @@
 </div>
 
 @code {
-    private List<TodoItemDto> items = [];
+    private List<TodoResponseDto> items = [];
     private CreateTodoDto newTodo = new();
     private int newPriority = 1;
     private string? searchTerm;
@@ -198,7 +201,7 @@
         errorMessage = null;
         try
         {
-            items = await Api.GetAllAsync();
+            items = (await TodoService.GetAllAsync()).ToList();
         }
         catch (Exception ex)
         {
@@ -217,7 +220,7 @@
         errorMessage = null;
         try
         {
-            items = await Api.GetAllAsync(searchTerm);
+            items = (await TodoService.SearchAsync(searchTerm ?? "")).ToList();
         }
         catch (Exception ex)
         {
@@ -247,8 +250,8 @@
         errorMessage = null;
         try
         {
-            newTodo.Priority = (Priority)newPriority;
-            await Api.CreateAsync(newTodo);
+            newTodo.Priority = (TodoBlazor.Models.Priority)newPriority;
+            await TodoService.CreateAsync(newTodo);
             newTodo = new();
             newPriority = 1;
             await LoadAsync();
@@ -263,7 +266,7 @@
         }
     }
 
-    private void StartEdit(TodoItemDto item)
+    private void StartEdit(TodoResponseDto item)
     {
         editingId = item.Id;
         editTitle = item.Title;
@@ -283,11 +286,11 @@
         errorMessage = null;
         try
         {
-            await Api.UpdateAsync(id, new UpdateTodoDto
+            await TodoService.UpdateAsync(id, new UpdateTodoDto
             {
                 Title = editTitle,
                 Description = editDescription,
-                Priority = (Priority)editPriority,
+                Priority = (TodoBlazor.Models.Priority)editPriority,
                 IsCompleted = items.First(i => i.Id == id).IsCompleted
             });
             editingId = null;
@@ -316,7 +319,7 @@
         errorMessage = null;
         try
         {
-            await Api.MarkCompleteAsync(id);
+            await TodoService.MarkCompleteAsync(id);
             await LoadAsync();
         }
         catch (Exception ex)
@@ -335,7 +338,7 @@
         errorMessage = null;
         try
         {
-            await Api.DeleteAsync(id);
+            await TodoService.DeleteAsync(id);
             await LoadAsync();
         }
         catch (Exception ex)
@@ -347,6 +350,4 @@
             loading = false;
         }
     }
-
-
 }

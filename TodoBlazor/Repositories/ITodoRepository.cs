@@ -1,6 +1,6 @@
-using TodoApi.Models;
+using TodoBlazor.Models;
 
-namespace TodoApi.Repositories;
+namespace TodoBlazor.Repositories;
 
 public interface ITodoRepository
 {

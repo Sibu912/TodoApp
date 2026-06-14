@@ -1,8 +1,8 @@
 ﻿@page "/"
 @rendermode InteractiveServer
-@using Microsoft.AspNetCore.Components.Forms
+@using TodoBlazor.DTOs
 @using TodoBlazor.Services
-@inject TodoApiClient Api
+@inject ITodoService TodoService
 
 <PageTitle>Dashboard</PageTitle>
 
@@ -113,7 +113,7 @@
         errorMessage = null;
         try
         {
-            stats = await Api.GetDashboardStatsAsync() ?? new();
+            stats = await TodoService.GetDashboardStatsAsync();
         }
         catch (Exception ex)
         {
@@ -146,7 +146,7 @@
         quickSuccess = null;
         try
         {
-            await Api.CreateAsync(new CreateTodoDto { Title = quickTitle.Trim() });
+            await TodoService.CreateAsync(new CreateTodoDto { Title = quickTitle.Trim() });
             quickTitle = "";
             quickSuccess = "Task added successfully!";
             await LoadStatsAsync();

@@ -1,4 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using TodoBlazor.Components;
+using TodoBlazor.Data;
+using TodoBlazor.Repositories;
 using TodoBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,13 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-var apiUrl = Environment.GetEnvironmentVariable("API_BASE_URL")
-             ?? builder.Configuration.GetValue<string>("ApiBaseUrl")
-             ?? "http://localhost:5000/";
-builder.Services.AddHttpClient<TodoApiClient>(client =>
-{
-    client.BaseAddress = new Uri(apiUrl);
-});
+builder.Services.AddControllers();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<ITodoRepository, TodoRepository>();
+builder.Services.AddScoped<ITodoService, TodoService>();
 
 var app = builder.Build();
 
@@ -22,12 +23,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-if (app.Environment.IsDevelopment())
-    app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
-
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
 
 app.Run();

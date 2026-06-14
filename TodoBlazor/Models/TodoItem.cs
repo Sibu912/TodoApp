@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TodoApi.Models;
+namespace TodoBlazor.Models;
 
 public enum Priority { Low, Medium, High }
 
