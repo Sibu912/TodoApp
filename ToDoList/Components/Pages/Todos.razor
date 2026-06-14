@@ -1,9 +1,9 @@
 @page "/todos"
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Forms
-@using TodoBlazor.DTOs
-@using TodoBlazor.Services
-@using TodoBlazor.Models
+@using ToDoList.DTOs
+@using ToDoList.Services
+@using ToDoList.Models
 @inject ITodoService TodoService
 
 <PageTitle>To-Do List</PageTitle>
@@ -250,7 +250,7 @@
         errorMessage = null;
         try
         {
-            newTodo.Priority = (TodoBlazor.Models.Priority)newPriority;
+            newTodo.Priority = (ToDoList.Models.Priority)newPriority;
             await TodoService.CreateAsync(newTodo);
             newTodo = new();
             newPriority = 1;
@@ -290,7 +290,7 @@
             {
                 Title = editTitle,
                 Description = editDescription,
-                Priority = (TodoBlazor.Models.Priority)editPriority,
+                Priority = (ToDoList.Models.Priority)editPriority,
                 IsCompleted = items.First(i => i.Id == id).IsCompleted
             });
             editingId = null;

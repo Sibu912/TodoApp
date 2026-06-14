@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using TodoBlazor.Data;
-using TodoBlazor.Models;
+using ToDoList.Data;
+using ToDoList.Models;
 
-namespace TodoBlazor.Repositories;
+namespace ToDoList.Repositories;
 
 public class TodoRepository : ITodoRepository
 {

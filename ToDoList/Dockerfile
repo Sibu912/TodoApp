@@ -8,4 +8,4 @@ WORKDIR /app
 COPY --from=build /app/out .
 EXPOSE 10000
 ENV ASPNETCORE_URLS=http://0.0.0.0:10000
-ENTRYPOINT ["dotnet", "TodoBlazor.dll"]
+ENTRYPOINT ["dotnet", "ToDoList.dll"]

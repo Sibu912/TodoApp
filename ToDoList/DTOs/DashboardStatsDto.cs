@@ -1,4 +1,4 @@
-namespace TodoBlazor.DTOs;
+namespace ToDoList.DTOs;
 
 public class DashboardStatsDto
 {

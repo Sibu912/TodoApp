@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using TodoBlazor.Models;
+using ToDoList.Models;
 
-namespace TodoBlazor.Data;
+namespace ToDoList.Data;
 
 public class AppDbContext : DbContext
 {

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using TodoBlazor.DTOs;
-using TodoBlazor.Services;
+using ToDoList.DTOs;
+using ToDoList.Services;
 
-namespace TodoBlazor.Controllers;
+namespace ToDoList.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

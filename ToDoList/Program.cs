@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using TodoBlazor.Components;
-using TodoBlazor.Data;
-using TodoBlazor.Repositories;
-using TodoBlazor.Services;
+using ToDoList.Components;
+using ToDoList.Data;
+using ToDoList.Repositories;
+using ToDoList.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

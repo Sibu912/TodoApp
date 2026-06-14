@@ -1,6 +1,6 @@
-using TodoBlazor.Models;
+using ToDoList.Models;
 
-namespace TodoBlazor.DTOs;
+namespace ToDoList.DTOs;
 
 public class TodoResponseDto
 {

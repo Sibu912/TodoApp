@@ -1,8 +1,8 @@
-using TodoBlazor.DTOs;
-using TodoBlazor.Models;
-using TodoBlazor.Repositories;
+using ToDoList.DTOs;
+using ToDoList.Models;
+using ToDoList.Repositories;
 
-namespace TodoBlazor.Services;
+namespace ToDoList.Services;
 
 public class TodoService : ITodoService
 {

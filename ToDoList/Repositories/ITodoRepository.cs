@@ -1,6 +1,6 @@
-using TodoBlazor.Models;
+using ToDoList.Models;
 
-namespace TodoBlazor.Repositories;
+namespace ToDoList.Repositories;
 
 public interface ITodoRepository
 {

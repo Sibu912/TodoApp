@@ -1,6 +1,6 @@
-using TodoBlazor.DTOs;
+using ToDoList.DTOs;
 
-namespace TodoBlazor.Services;
+namespace ToDoList.Services;
 
 public interface ITodoService
 {

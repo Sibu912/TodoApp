@@ -1,4 +1,4 @@
-# To-Do App
+# To-Do List
 
 A full-stack task management application built with **.NET 8**, **Blazor Server**, and **SQLite**.
 
@@ -28,7 +28,7 @@ A full-stack task management application built with **.NET 8**, **Blazor Server*
 Single-project deployment — the API controllers and Blazor UI run in the same process. No separate API server needed.
 
 ```
-TodoBlazor/
+ToDoList/
 ├── Controllers/      # REST API endpoints
 ├── Data/             # EF Core DbContext
 ├── DTOs/             # Request/response models
@@ -58,7 +58,7 @@ TodoBlazor/
 ## Run Locally
 
 ```bash
-cd TodoBlazor
+cd ToDoList
 dotnet run
 ```
 

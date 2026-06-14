@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using TodoBlazor.Models;
+using ToDoList.Models;
 
-namespace TodoBlazor.DTOs;
+namespace ToDoList.DTOs;
 
-public class UpdateTodoDto
+public class CreateTodoDto
 {
     [Required(ErrorMessage = "Title is required")]
     [StringLength(200, MinimumLength = 1, ErrorMessage = "Title must be between 1 and 200 characters")]
@@ -11,8 +11,6 @@ public class UpdateTodoDto
 
     [StringLength(1000, ErrorMessage = "Description must not exceed 1000 characters")]
     public string? Description { get; set; }
-
-    public bool IsCompleted { get; set; }
 
     public Priority Priority { get; set; } = Priority.Medium;
 }

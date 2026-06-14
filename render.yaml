@@ -4,7 +4,7 @@ services:
     runtime: docker
     repo: https://github.com/Sibu912/TodoApp
     plan: free
-    rootDir: TodoBlazor
+    rootDir: ToDoList
     dockerfilePath: ./Dockerfile
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
