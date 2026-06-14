@@ -1,0 +1,21 @@
+{
+  "name": "TodoApp - .NET 8",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:8.0",
+  "forwardPorts": [5000, 5001],
+  "portsAttributes": {
+    "5000": {
+      "label": "TodoApi",
+      "onAutoForward": "silent"
+    },
+    "5001": {
+      "label": "TodoApi HTTPS",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "dotnet restore",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-dotnettools.csdevkit"]
+    }
+  }
+}

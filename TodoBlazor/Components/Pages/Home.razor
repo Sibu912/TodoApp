@@ -1,0 +1,163 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Forms
+@using TodoBlazor.Services
+@inject TodoApiClient Api
+
+<PageTitle>Dashboard</PageTitle>
+
+<div class="container mt-4">
+    <div class="mb-4">
+        <h1>@GetGreeting()</h1>
+        <p class="text-muted">Here's your task overview for today.</p>
+    </div>
+
+    @if (errorMessage is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
+
+    @if (loading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card text-bg-warning h-100">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Pending Tasks</h6>
+                        <p class="display-5 fw-bold mb-0">@stats.TotalPending</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-bg-success h-100">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Completed Today</h6>
+                        <p class="display-5 fw-bold mb-0">@stats.CompletedToday</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-bg-danger h-100">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">High Priority</h6>
+                        <p class="display-5 fw-bold mb-0">@stats.HighPriorityItems</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Quick Add Task</h5></div>
+            <div class="card-body">
+                <div class="input-group">
+                    <input @bind="quickTitle"
+                           class="form-control form-control-lg"
+                           placeholder="Type a task and press Enter..."
+                           @onkeydown="HandleQuickKeyDown"
+                           disabled="@quickLoading" />
+                    <button class="btn btn-primary btn-lg" @onclick="QuickAddAsync" disabled="@quickLoading">
+                        @(quickLoading ? "Adding..." : "Add")
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(quickError))
+                {
+                    <div class="text-danger mt-1"><small>@quickError</small></div>
+                }
+                @if (!string.IsNullOrEmpty(quickSuccess))
+                {
+                    <div class="text-success mt-1"><small>@quickSuccess</small></div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private DashboardStatsDto stats = new();
+    private string? errorMessage;
+    private bool loading;
+
+    private string quickTitle = "";
+    private bool quickLoading;
+    private string? quickError;
+    private string? quickSuccess;
+
+    private string GetGreeting()
+    {
+        var hour = DateTime.Now.Hour;
+        var timeGreeting = "Good evening";
+        if (hour < 12) timeGreeting = "Good morning";
+        else if (hour < 17) timeGreeting = "Good afternoon";
+        return $"{timeGreeting}! Ready to crush some tasks?";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStatsAsync();
+    }
+
+    private async Task LoadStatsAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            stats = await Api.GetDashboardStatsAsync() ?? new();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load dashboard: {ex.Message}";
+            stats = new();
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task HandleQuickKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await QuickAddAsync();
+    }
+
+    private async Task QuickAddAsync()
+    {
+        if (string.IsNullOrWhiteSpace(quickTitle))
+        {
+            quickError = "Please enter a task title.";
+            quickSuccess = null;
+            return;
+        }
+
+        quickLoading = true;
+        quickError = null;
+        quickSuccess = null;
+        try
+        {
+            await Api.CreateAsync(new CreateTodoDto { Title = quickTitle.Trim() });
+            quickTitle = "";
+            quickSuccess = "Task added successfully!";
+            await LoadStatsAsync();
+        }
+        catch (Exception ex)
+        {
+            quickError = $"Failed to add task: {ex.Message}";
+        }
+        finally
+        {
+            quickLoading = false;
+        }
+    }
+}

@@ -1,0 +1,352 @@
+@page "/todos"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Forms
+@using TodoBlazor.Services
+@inject TodoApiClient Api
+<PageTitle>To-Do List</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="mb-4">To-Do List</h1>
+
+    @if (errorMessage is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
+
+    <div class="row g-2 mb-4">
+        <div class="col-md-8">
+            <input @bind="searchTerm" @bind:event="oninput"
+                   class="form-control" placeholder="Search tasks..."
+                   @onkeydown="HandleSearchKeyDown" />
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-outline-primary w-100" @onclick="SearchAsync" disabled="@loading">
+                @(loading ? "Searching..." : "Search")
+            </button>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-outline-secondary w-100" @onclick="ClearSearch">
+                Clear
+            </button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header"><h5 class="mb-0">Add New Task</h5></div>
+        <div class="card-body">
+            <EditForm Model="@newTodo" OnValidSubmit="CreateAsync">
+                <DataAnnotationsValidator />
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <InputText @bind-Value="newTodo.Title" class="form-control" placeholder="Task title" />
+                        <ValidationMessage For="@(() => newTodo.Title)" class="text-danger" />
+                    </div>
+                    <div class="col-md-4">
+                        <InputText @bind-Value="newTodo.Description" class="form-control" placeholder="Description (optional)" />
+                    </div>
+                    <div class="col-md-2">
+                        <select @bind="newPriority" class="form-select">
+                            <option value="0">Low</option>
+                            <option value="1" selected>Medium</option>
+                            <option value="2">High</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100" disabled="@loading">
+                            @(loading ? "..." : "Add")
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    @if (loading && items.Count == 0)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!items.Any())
+    {
+        <div class="alert alert-info">No tasks found. Add one above!</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:40px">#</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th style="width:100px">Priority</th>
+                        <th style="width:100px">Status</th>
+                        <th style="width:160px">Created</th>
+                        <th style="width:200px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in items)
+                    {
+                        <tr class="@(item.IsCompleted ? "table-success" : "")">
+                            <td>@item.Id</td>
+                            <td>
+                                @if (editingId == item.Id)
+                                {
+                                    <InputText @bind-Value="editTitle" class="form-control form-control-sm" />
+                                }
+                                else
+                                {
+                                    <span class="@(item.IsCompleted ? "text-decoration-line-through" : "")">@item.Title</span>
+                                }
+                            </td>
+                            <td>
+                                @if (editingId == item.Id)
+                                {
+                                    <InputText @bind-Value="editDescription" class="form-control form-control-sm" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted">@(item.Description ?? "-")</span>
+                                }
+                            </td>
+                            <td>
+                                @if (editingId == item.Id)
+                                {
+                                    <select @bind="editPriority" class="form-select form-select-sm">
+                                        <option value="0">Low</option>
+                                        <option value="1">Medium</option>
+                                        <option value="2">High</option>
+                                    </select>
+                                }
+                                else
+                                {
+                                    var badge = item.Priority switch
+                                    {
+                                        Priority.High => "danger",
+                                        Priority.Medium => "warning text-dark",
+                                        _ => "secondary"
+                                    };
+                                    <span class="badge bg-@badge">@item.Priority</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsCompleted)
+                                {
+                                    <span class="badge bg-success">Completed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                }
+                            </td>
+                            <td><small>@item.CreatedAt.ToString("g")</small></td>
+                            <td>
+                                @if (editingId == item.Id)
+                                {
+                                    <button class="btn btn-sm btn-success me-1" @onclick="() => SaveEditAsync(item.Id)">Save</button>
+                                    <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                                }
+                                else
+                                {
+                                    @if (!item.IsCompleted)
+                                    {
+                                        <button class="btn btn-sm btn-outline-success me-1" @onclick="() => CompleteAsync(item.Id)"
+                                                disabled="@loading" title="Mark complete">Done</button>
+                                    }
+                                    <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => StartEdit(item)"
+                                            disabled="@loading" title="Edit">Edit</button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(item.Id)"
+                                            disabled="@loading" title="Delete">Delete</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<TodoItemDto> items = [];
+    private CreateTodoDto newTodo = new();
+    private int newPriority = 1;
+    private string? searchTerm;
+    private string? errorMessage;
+    private bool loading;
+
+    private int? editingId;
+    private string editTitle = "";
+    private string? editDescription;
+    private int editPriority = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            items = await Api.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load tasks: {ex.Message}";
+            items = [];
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task SearchAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            items = await Api.GetAllAsync(searchTerm);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Search failed: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task HandleSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await SearchAsync();
+    }
+
+    private async Task ClearSearch()
+    {
+        searchTerm = null;
+        await LoadAsync();
+    }
+
+    private async Task CreateAsync()
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            newTodo.Priority = (Priority)newPriority;
+            await Api.CreateAsync(newTodo);
+            newTodo = new();
+            newPriority = 1;
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to create task: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void StartEdit(TodoItemDto item)
+    {
+        editingId = item.Id;
+        editTitle = item.Title;
+        editDescription = item.Description;
+        editPriority = (int)item.Priority;
+    }
+
+    private async Task SaveEditAsync(int id)
+    {
+        if (string.IsNullOrWhiteSpace(editTitle))
+        {
+            errorMessage = "Title cannot be empty.";
+            return;
+        }
+
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            await Api.UpdateAsync(id, new UpdateTodoDto
+            {
+                Title = editTitle,
+                Description = editDescription,
+                Priority = (Priority)editPriority,
+                IsCompleted = items.First(i => i.Id == id).IsCompleted
+            });
+            editingId = null;
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to update task: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void CancelEdit()
+    {
+        editingId = null;
+        editTitle = "";
+        editDescription = null;
+    }
+
+    private async Task CompleteAsync(int id)
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            await Api.MarkCompleteAsync(id);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to complete task: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            await Api.DeleteAsync(id);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete task: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+
+}
